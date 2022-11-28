@@ -1,4 +1,4 @@
-//change on dropdown menu
+// Function for change on dropdown menu
 function optionChanged(selectedID){
 
     // Check if value is selected in dropdown
@@ -7,20 +7,38 @@ function optionChanged(selectedID){
     // Read the json file for the data
     d3.json("data/samples.json").then((data) => {
  
-  
+   //  console.log(data);
  
-    
+    // Clears dropdown
     d3.select("#selDataset").html("");   
     
-   
+    // Select the metadata array and for each item append the item ID and adds ID to dropdown
+    data.metadata.forEach(item =>
+         {
+          // console.log(item.id);
+         d3.select ("#selDataset").append('option').attr('value', item.id).text(item.id);
+         });
+    // Selected value is passed
+    d3.select("#selDataset").node().value = selectedID;
+    
+    // Filter Metadata for selected ID from dropdown
+    const idMetadata = data.metadata.filter(item=> (item.id == selectedID));
+      
+    console.log(idMetadata);
+    
+    const panelDisplay = d3.select("#sample-metadata");
+    panelDisplay.html("");
+    Object.entries(idMetadata[0]).forEach(item=> 
+       {
+          // console.log(item);
+          panelDisplay.append("p").text(`${item[0]}: ${item[1]}`)
+       });
  
     // BAR CHART
  
-   
+    // Filter sample array data for the selected ID
     const idSample = data.samples.filter(item => parseInt(item.id) == selectedID);
-    
-     
-    
+   
     // Slice top 10 sample values
     var sampleValue = idSample[0].sample_values.slice(0,10);
     sampleValue= sampleValue.reverse();
@@ -29,12 +47,11 @@ function optionChanged(selectedID){
     var otuLabels = idSample[0].otu_labels
     otuLabels = otuLabels.reverse();
  
-   
- 
-    // Y axis of bar chart
+        // Y axis of bar chart
     const yAxis = otuID.map(item => 'OTU' + " " + item);
+       // console.log(yAxis);
     
-   
+    // Define the layout and trace object, edit color and orientation
        const trace = {
        y: yAxis,
        x: sampleValue,
@@ -49,21 +66,20 @@ function optionChanged(selectedID){
         }
        },
        layout = {
-       title: 'Top 10 Operational Taxonomic Units (OTU)/Individual',
+       title: 'Units (OTU)/Individual',
        xaxis: {title: 'Number of Samples Collected'},
        yaxis: {title: 'OTU ID'}
        };
  
-      
+       // Plot using Plotly
        Plotly.newPlot('bar', [trace], layout,  {responsive: true});    
        
  // BUBBLE CHART
  
- 
  var sampleValue1 =idSample[0].sample_values;
  var otuID1= idSample[0].otu_ids;
  
-
+ 
  const trace1 = {
     x: otuID1,
     y: sampleValue1,
@@ -80,16 +96,16 @@ function optionChanged(selectedID){
     xaxis: {title: 'OTU ID'},
     yaxis: {title: 'Number of Samples Collected'},
     showlegend: false,
-    height: 400,
-    width: 1000
+    height: 600,
+    width: 900
     };
     
- 
+ // Plot using Plotly
  Plotly.newPlot('bubble', [trace1], layout1);
  
- // BONUS
+ // BONUS: GAUGE CHART
 
-
+ // Gauge Chart to plot weekly washing frequency 
  const guageDisplay = d3.select("#gauge");
  guageDisplay.html(""); 
  const washFreq = idMetadata[0].wfreq;
@@ -122,19 +138,21 @@ function optionChanged(selectedID){
       }
     }
   ]; 
-  const gaugeLayout = {  width: 400, 
+  const gaugeLayout = {  width: 250, 
                    height: 200, 
                    margin: { t: 0, b: 0 }, 
                     };
  
- 
+ // Plot using Plotly
   Plotly.newPlot('gauge', guageData, gaugeLayout); 
  
  });
  }
-
+ 
+ // Initial test starts at ID 940
  optionChanged(940);
-
+ 
+ // Event on change takes the value and calls the function during dropdown selection
  d3.select("#selDataset").on('change',() => {
  optionChanged(d3.event.target.value);
  
